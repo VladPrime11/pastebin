@@ -1,15 +1,11 @@
 from django.views import View
 from django.http import JsonResponse, HttpResponseNotFound, HttpResponseServerError
-from django.utils import timezone
-from django.core.files.base import ContentFile
 from django.utils.decorators import method_decorator
-from django.utils.module_loading import import_string
 from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
 from django.urls import reverse
-
-from .models import TextBlock
-from .utils import generate_unique_hash
+from texts.services.text_block_service import TextBlockService
+from texts.services.cache_service import CacheService
+from texts.utils.s3_service import S3Service
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -28,25 +24,10 @@ class CreateTextBlockView(View):
         except ValueError:
             return JsonResponse({'error': 'expires_in должно быть положительным целым числом.'}, status=400)
 
-        hash = generate_unique_hash()
-        s3_key = f'{hash}.txt'
-        content_bytes = content.encode('utf-8')
-        content_file = ContentFile(content_bytes)
-
-        StorageClass = import_string(settings.DEFAULT_FILE_STORAGE)
-        storage = StorageClass()
-
         try:
-            saved_filename = storage.save(s3_key, content_file)
+            text_block = TextBlockService.create_text_block(content, expires_in)
         except Exception as e:
             return JsonResponse({'error': 'Ошибка при сохранении файла.'}, status=500)
-
-        expires_at = timezone.now() + timezone.timedelta(seconds=expires_in)
-        text_block = TextBlock.objects.create(
-            hash=hash,
-            s3_key=saved_filename,
-            expires_at=expires_at
-        )
 
         relative_url = reverse('retrieve_text_block', args=[text_block.url_token])
         full_url = request.build_absolute_uri(relative_url)
@@ -57,25 +38,58 @@ class CreateTextBlockView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class RetrieveTextBlockView(View):
     def get(self, request, url_token):
-        try:
-            text_block = TextBlock.objects.get(url_token=url_token)
-        except TextBlock.DoesNotExist:
+        cache_key = f"text_block_{url_token}"
+        popular_cache_key = f"popular_text_block_{url_token}"
+        min_views = 5
+
+        cached_popular_data = CacheService.get_from_cache(popular_cache_key)
+        if cached_popular_data:
+            TextBlockService.increment_views(url_token)
+            return JsonResponse(cached_popular_data)
+
+        cached_data = CacheService.get_from_cache(cache_key)
+        if cached_data:
+            TextBlockService.increment_views(url_token)
+
+            text_block = TextBlockService.get_text_block_by_token(url_token)
+            if not text_block:
+                return HttpResponseNotFound("Текстовый блок не найден.")
+
+            current_views = text_block.views
+            cached_data['views'] = current_views
+            CacheService.set_to_cache(cache_key, cached_data, 300)
+
+            if current_views >= min_views:
+                CacheService.set_to_cache(popular_cache_key, cached_data, 3000)
+
+            return JsonResponse(cached_data)
+
+        text_block = TextBlockService.get_text_block_by_token(url_token)
+        if not text_block:
             return HttpResponseNotFound("Текстовый блок не найден.")
 
-        if text_block.expires_at < timezone.now():
-            text_block.delete()
+        if TextBlockService.delete_expired_text_block(text_block):
             return HttpResponseNotFound("Текстовый блок истёк и был удалён.")
 
-        StorageClass = import_string(settings.DEFAULT_FILE_STORAGE)
-        storage = StorageClass()
-
         try:
-            with storage.open(text_block.s3_key, 'rb') as file_obj:
-                content = file_obj.read().decode('utf-8')
+            content = S3Service.read_file(text_block.s3_key)
         except Exception as e:
             return HttpResponseServerError("Ошибка при получении контента.")
 
-        text_block.views += 1
-        text_block.save()
+        TextBlockService.increment_views(url_token)
 
-        return JsonResponse({'content': content})
+        text_block.refresh_from_db()
+        current_views = text_block.views
+
+        data = {
+            'content': content,
+            'views': current_views,
+            'created_at': text_block.created_at.isoformat(),
+        }
+
+        CacheService.set_to_cache(cache_key, data, 300)
+
+        if current_views >= min_views:
+            CacheService.set_to_cache(popular_cache_key, data, 3000)
+
+        return JsonResponse(data)
