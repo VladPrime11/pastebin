@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.urls import reverse
 
 from .models import TextBlock
 from .utils import generate_unique_hash
@@ -28,7 +29,7 @@ class CreateTextBlockView(View):
             return JsonResponse({'error': 'expires_in должно быть положительным целым числом.'}, status=400)
 
         hash = generate_unique_hash()
-        s3_key = f'texts/{hash}.txt'
+        s3_key = f'{hash}.txt'
         content_bytes = content.encode('utf-8')
         content_file = ContentFile(content_bytes)
 
@@ -47,14 +48,17 @@ class CreateTextBlockView(View):
             expires_at=expires_at
         )
 
-        return JsonResponse({'hash': text_block.hash}, status=201)
+        relative_url = reverse('retrieve_text_block', args=[text_block.url_token])
+        full_url = request.build_absolute_uri(relative_url)
+
+        return JsonResponse({'url': full_url}, status=201)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RetrieveTextBlockView(View):
-    def get(self, request, hash):
+    def get(self, request, url_token):
         try:
-            text_block = TextBlock.objects.get(hash=hash)
+            text_block = TextBlock.objects.get(url_token=url_token)
         except TextBlock.DoesNotExist:
             return HttpResponseNotFound("Текстовый блок не найден.")
 
