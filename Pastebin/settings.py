@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_celery_results',
     'django_celery_beat',
+    'storages',
     'texts',
     'tasks',
 ]
@@ -75,12 +76,37 @@ CACHES = {
     }
 }
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# SESSION_CACHE_ALIAS = 'default'
+#
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+AWS_ACCESS_KEY_ID = 'AKIAZ7SAKZ35FYAZOSAQ'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'testpastebin'
+AWS_S3_REGION_NAME = 'eu-north-1'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_ADDRESSING_STYLE = "virtual"
+AWS_DEFAULT_ACL = None
+AWS_S3_FILE_OVERWRITE = True
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'texts': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+        },
+    },
+}
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -120,3 +146,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+print(f"DEFAULT_FILE_STORAGE: {DEFAULT_FILE_STORAGE}")
