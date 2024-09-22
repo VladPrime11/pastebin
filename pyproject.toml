@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "pastebin"
+version = "0.1.0"
+description = "A Python application for managing pastes"
+authors = ["AntonPrime11 <129660367+AntonPrime11@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.12"
+django = "^5.1.1"
+djangorestframework = "^3.15.2"
+psycopg2-binary = "^2.9.9"
+redis = "^5.0.8"
+django-redis = "^5.4.0"
+boto3 = "^1.35.24"
+django-storages = {extras = ["botocore"], version = "^1.14.4"}
+celery = "^5.4.0"
+django-celery-results = "^2.5.1"
+django-celery-beat = "^2.7.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
