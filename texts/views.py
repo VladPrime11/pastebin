@@ -15,19 +15,19 @@ class CreateTextBlockView(View):
         expires_in = request.POST.get('expires_in')
 
         if not content or not expires_in:
-            return JsonResponse({'error': 'Поля content и expires_in обязательны.'}, status=400)
+            return JsonResponse({'error': 'The content and expires_in fields are mandatory.'}, status=400)
 
         try:
             expires_in = int(expires_in)
             if expires_in <= 0:
                 raise ValueError
         except ValueError:
-            return JsonResponse({'error': 'expires_in должно быть положительным целым числом.'}, status=400)
+            return JsonResponse({'error': 'expires_in must be a positive integer.'}, status=400)
 
         try:
             text_block = TextBlockService.create_text_block(content, expires_in)
         except Exception as e:
-            return JsonResponse({'error': 'Ошибка при сохранении файла.'}, status=500)
+            return JsonResponse({'error': 'Error when saving a file.'}, status=500)
 
         relative_url = reverse('retrieve_text_block', args=[text_block.url_token])
         full_url = request.build_absolute_uri(relative_url)
@@ -53,7 +53,7 @@ class RetrieveTextBlockView(View):
 
             text_block = TextBlockService.get_text_block_by_token(url_token)
             if not text_block:
-                return HttpResponseNotFound("Текстовый блок не найден.")
+                return HttpResponseNotFound('Text block not found.')
 
             current_views = text_block.views
             cached_data['views'] = current_views
@@ -66,15 +66,15 @@ class RetrieveTextBlockView(View):
 
         text_block = TextBlockService.get_text_block_by_token(url_token)
         if not text_block:
-            return HttpResponseNotFound("Текстовый блок не найден.")
+            return HttpResponseNotFound('Text block not found.')
 
         if TextBlockService.delete_expired_text_block(text_block):
-            return HttpResponseNotFound("Текстовый блок истёк и был удалён.")
+            return HttpResponseNotFound('The text block expired and was deleted.')
 
         try:
             content = S3Service.read_file(text_block.s3_key)
         except Exception as e:
-            return HttpResponseServerError("Ошибка при получении контента.")
+            return HttpResponseServerError('Error when retrieving content.')
 
         TextBlockService.increment_views(url_token)
 
