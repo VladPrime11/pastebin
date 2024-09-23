@@ -305,6 +305,7 @@ files = [
 ]
 
 [package.dependencies]
+boto3 = {version = ">=1.4.4", optional = true, markers = "extra == \"boto3\""}
 Django = ">=3.2"
 
 [package.extras]
@@ -548,6 +549,17 @@ botocore = ">=1.33.2,<2.0a.0"
 crt = ["botocore[crt] (>=1.33.2,<2.0a.0)"]
 
 [[package]]
+name = "shortuuid"
+version = "1.0.13"
+description = "A generator library for concise, unambiguous and URL-safe UUIDs."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "shortuuid-1.0.13-py3-none-any.whl", hash = "sha256:a482a497300b49b4953e15108a7913244e1bb0d41f9d332f5e9925dba33a3c5a"},
+    {file = "shortuuid-1.0.13.tar.gz", hash = "sha256:3bb9cf07f606260584b1df46399c0b87dd84773e7b25912b7e391e30797c5e72"},
+]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -626,4 +638,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12"
-content-hash = "d22f757f5da1a8a606f2100fab654710b5e0695899e52e42d29cc5b51e927b65"
+content-hash = "1b4c3818b53c671b4ca4796b31899a979363ed5029b0fe46840ea9419c13f79a"
