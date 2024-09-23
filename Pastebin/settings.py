@@ -82,9 +82,6 @@ CACHES = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 
-# CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-# CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
-
 AWS_ACCESS_KEY_ID = 'AKIAZ7SAKZ35FYAZOSAQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'testpastebin'
@@ -94,9 +91,18 @@ AWS_DEFAULT_ACL = None
 AWS_S3_FILE_OVERWRITE = False
 AWS_LOCATION = ''
 
-
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
+}
+
+CELERY_BROKER_URL = 'redis://localhost:6379/3'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/3'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_BEAT_SCHEDULE = {
+    'delete_expired_links': {
+        'task': 'tasks.tasks.delete_expired_links',
+        'schedule': 600.0,
+    },
 }
 
 
@@ -117,7 +123,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Kyiv'
 
 USE_I18N = True
 
