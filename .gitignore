@@ -1,0 +1,84 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# If using PostgreSQL
+*.pgsql
+
+# Ignore environment variables file
+.env
+*.env
+
+# Ignore secret key file (if you store Django's secret key separately)
+.secret_key
+
+# Ignore migrations
+*/migrations/*
+!*/migrations/__init__.py
+
+# Media and static files
+/static/
+/media/
+
+# Ignore cache and session data
+*.cache
+*.mo
+*.swp
+
+# Ignore virtual environment directories
+venv/
+ENV/
+env/
+.venv/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# MacOS specific files
+.DS_Store
+
+# Thumbnails
+*_thumb.*
+
+# Files created by SFTP deployment
+.sftp-config.json
+*.sublime-project
+*.sublime-workspace
+
+# pipenv
+Pipfile.lock
+
+# Celery beat schedule file
+celerybeat-schedule
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# Ignore temporary test files
+test_*.log
+tests_*.log
