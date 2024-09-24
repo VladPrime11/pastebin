@@ -3,6 +3,8 @@ from django.http import JsonResponse, HttpResponseNotFound, HttpResponseServerEr
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
+
+from texts.services.password_service import PasswordService
 from texts.services.text_block_service import TextBlockService
 from texts.services.cache_service import CacheService
 from texts.utils.s3_service import S3Service
@@ -34,7 +36,6 @@ class CreateTextBlockView(View):
         full_url = request.build_absolute_uri(relative_url)
 
         return JsonResponse({'url': full_url}, status=201)
-
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -73,6 +74,14 @@ class RetrieveTextBlockView(View):
         if TextBlockService.delete_expired_text_block(text_block):
             return HttpResponseNotFound('The text block expired and was deleted.')
 
+        if text_block.password:
+            password = request.GET.get('password')
+            if not password:
+                return JsonResponse({'error': 'Password required to access this text block.'}, status=400)
+
+            if not PasswordService.check_password(password, text_block.password):
+                return JsonResponse({'error': 'Incorrect password.'}, status=403)
+
         try:
             content = S3Service.read_file(text_block.s3_key)
         except Exception as e:
@@ -95,3 +104,4 @@ class RetrieveTextBlockView(View):
             CacheService.set_to_cache(popular_cache_key, data, 3000)
 
         return JsonResponse(data)
+
