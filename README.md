@@ -91,9 +91,9 @@ Open your browser and go to ```http://localhost:8000```
 
 ```json
 {
-    "content": "Your text here",        // The text content for the block
-    "expires_in": 3600,                 // Time in seconds until the text block expires
-    "password": "optional_password"     // (Optional) Password to protect the text block
+    "content": "Your text here",
+    "expires_in": 3600,
+    "password": "optional_password"
 }
 ```
 #### **Responce**:
@@ -116,9 +116,9 @@ GET http://localhost:8000/texts/<uuid>/?password=optional_password
 #### **Responce**:
 ```json
 {
-    "content": "Your text here",         // The content of the text block
-    "views": 5,                          // Number of times this block has been viewed
-    "created_at": "2024-09-24T10:57:40.049997+00:00" // Creation timestamp in ISO format
+    "content": "Your text here",
+    "views": 5,
+    "created_at": "2024-09-24T10:57:40.049997+00:00"
 }
 ```
 If the text block is password-protected, an incorrect or missing password will result in an error response:
