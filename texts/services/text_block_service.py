@@ -5,12 +5,13 @@ from django.db.models import F
 from texts.models import TextBlock
 from texts.utils.s3_service import S3Service
 from texts.utils_functions import generate_unique_hash
+from texts.services.password_service import PasswordService
 
 
 class TextBlockService:
 
     @staticmethod
-    def create_text_block(content: str, expires_in: int):
+    def create_text_block(content: str, expires_in: int, password: str = None):
         hash = generate_unique_hash()
         s3_key = f'{hash}.txt'
         content_bytes = content.encode('utf-8')
@@ -20,11 +21,18 @@ class TextBlockService:
         saved_filename = storage.save(s3_key, content_file)
 
         expires_at = timezone.now() + timezone.timedelta(seconds=expires_in)
-        return TextBlock.objects.create(
+        text_block = TextBlock.objects.create(
             hash=hash,
             s3_key=saved_filename,
             expires_at=expires_at
         )
+
+        if password:
+            hashed_password = PasswordService.hash_password(password)
+            text_block.password = hashed_password
+            text_block.save()
+
+        return text_block
 
     @staticmethod
     def increment_views(url_token: str):

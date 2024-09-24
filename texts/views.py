@@ -13,6 +13,7 @@ class CreateTextBlockView(View):
     def post(self, request):
         content = request.POST.get('content')
         expires_in = request.POST.get('expires_in')
+        password = request.POST.get('password')
 
         if not content or not expires_in:
             return JsonResponse({'error': 'The content and expires_in fields are mandatory.'}, status=400)
@@ -25,7 +26,7 @@ class CreateTextBlockView(View):
             return JsonResponse({'error': 'expires_in must be a positive integer.'}, status=400)
 
         try:
-            text_block = TextBlockService.create_text_block(content, expires_in)
+            text_block = TextBlockService.create_text_block(content, expires_in, password)
         except Exception as e:
             return JsonResponse({'error': 'Error when saving a file.'}, status=500)
 
@@ -33,6 +34,7 @@ class CreateTextBlockView(View):
         full_url = request.build_absolute_uri(relative_url)
 
         return JsonResponse({'url': full_url}, status=201)
+
 
 
 @method_decorator(csrf_exempt, name='dispatch')
